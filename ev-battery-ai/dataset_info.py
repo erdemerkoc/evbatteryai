@@ -1,6 +1,6 @@
 import pandas as pd
 
-file_path = r"dataset\ev battery_failure prediction Dataset.csv"
+file_path = "dataset/ev battery_failure prediction Dataset.csv"
 
 df = pd.read_csv(file_path)
 

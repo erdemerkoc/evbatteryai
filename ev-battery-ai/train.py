@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 # 1. DATASET
 # ==========================================
 
-file_path = r"dataset\ev battery_failure prediction Dataset.csv"
+file_path = "dataset/ev battery_failure prediction Dataset.csv"
 
 df = pd.read_csv(file_path)
 
@@ -46,7 +46,7 @@ numeric_features = X.select_dtypes(
 ).columns.tolist()
 
 categorical_features = X.select_dtypes(
-    include=["object", "str"]
+    include=["object", "category", "string"]
 ).columns.tolist()
 
 print("\nNumeric features:", len(numeric_features))
@@ -282,4 +282,16 @@ print(
       .T
       .to_string()
 )
+
+
+# ==========================================
+# 20. MODEL KAYDETME (JOB-LIB)
+# ==========================================
+
+import joblib
+
+model_filename = "ev_battery_model.joblib"
+joblib.dump(pipeline, model_filename)
+print(f"\n✅ Eğitilmiş model başarıyla kaydedildi: '{model_filename}'")
+
 

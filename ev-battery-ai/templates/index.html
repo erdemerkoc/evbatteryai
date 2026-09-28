@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Battery AI - Batarya Arıza Tahmini</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f1d;
+            --bg-card: rgba(18, 26, 47, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-danger: #ff4b4b;
+            --accent-success: #00e676;
+            --text-primary: #f0f4f8;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(79, 172, 254, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(0, 242, 254, 0.1) 0px, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .presets {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-card);
+            color: var(--text-primary);
+            padding: 0.7rem 1.4rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .preset-btn.healthy {
+            border-color: var(--accent-success);
+        }
+
+        .preset-btn.failing {
+            border-color: var(--accent-danger);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-submit {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            color: #040914;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 242, 254, 0.5);
+        }
+
+        .result-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin-bottom: 1.5rem;
+        }
+
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .risk-badge {
+            padding: 0.6rem 1.4rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            margin-top: 0.5rem;
+        }
+
+        .risk-badge.low {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--accent-success);
+            border: 1px solid var(--accent-success);
+        }
+
+        .risk-badge.high {
+            background: rgba(255, 75, 75, 0.15);
+            color: var(--accent-danger);
+            border: 1px solid var(--accent-danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ EV Battery AI Platform</h1>
+            <p>Elektrikli Araç Batarya Sağlık & Arıza Tahmin Arayüzü</p>
+        </header>
+
+        <div class="presets">
+            <button class="preset-btn healthy" onclick="loadPreset('healthy')">🟢 Sağlam Batarya Örneği Doldur</button>
+            <button class="preset-btn failing" onclick="loadPreset('failing')">🚨 Arızalı Batarya Örneği Doldur</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="section-title">📊 Batarya Ölçüm Verilerini Girin</div>
+                <form id="predictionForm" onsubmit="predict(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Termal Sağlık Skoru (0-100)</label>
+                            <input type="number" step="0.1" id="thermal_health_score" value="85.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Termal Kaçak (Runaway) Riski</label>
+                            <input type="number" step="0.1" id="thermal_runaway_risk" value="15.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Max Hücre Sıcaklığı (°C)</label>
+                            <input type="number" step="0.1" id="cell_temperature_max" value="35.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ortalama Hücre Sıcaklığı (°C)</label>
+                            <input type="number" step="0.1" id="cell_temperature_avg" value="30.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kapasite Kaybı (%)</label>
+                            <input type="number" step="0.1" id="capacity_loss_percent" value="15.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>İç Direnç (mΩ/Ohm)</label>
+                            <input type="number" step="0.001" id="internal_resistance" value="0.45" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Batarya Sağlık Durumu (SoH %)</label>
+                            <input type="number" step="0.1" id="battery_health_percent" value="90.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Batarya Stres İndeksi (0-100)</label>
+                            <input type="number" step="0.1" id="battery_stress_index" value="30.0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Geçmiş Arıza Sayısı</label>
+                            <input type="number" id="previous_faults" value="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>BMS Uyarı Sayısı</label>
+                            <input type="number" id="BMS_warning_count" value="0" required>
+                        </div>
+
+                        <button type="submit" class="btn-submit">🚀 Batarya Arıza Riskini Hesapla</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="section-title">🎯 Tahmin Sonucu</div>
+                <div class="result-box">
+                    <div class="gauge-container">
+                        <svg width="180" height="180" viewBox="0 0 180 180">
+                            <circle cx="90" cy="90" r="75" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="14"/>
+                            <circle id="gaugeCircle" cx="90" cy="90" r="75" fill="none" stroke="#00f2fe" stroke-width="14"
+                                    stroke-dasharray="471" stroke-dashoffset="471" stroke-linecap="round"
+                                    style="transition: stroke-dashoffset 1s ease, stroke 1s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
+                        </svg>
+                        <div class="gauge-text" id="probText">%0</div>
+                    </div>
+                    <div id="riskBadge" class="risk-badge low">🟢 DÜŞÜK RİSK</div>
+                    <p id="riskDetail" style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.95rem;">
+                        Hesapla butonuna basarak arıza riskini öğrenin.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadPreset(type) {
+            if (type === 'healthy') {
+                document.getElementById('thermal_health_score').value = 98.1;
+                document.getElementById('thermal_runaway_risk').value = 4.8;
+                document.getElementById('cell_temperature_max').value = 27.8;
+                document.getElementById('cell_temperature_avg').value = 24.5;
+                document.getElementById('capacity_loss_percent').value = 19.4;
+                document.getElementById('internal_resistance').value = 0.506;
+                document.getElementById('battery_health_percent').value = 96.5;
+                document.getElementById('battery_stress_index').value = 22.0;
+                document.getElementById('previous_faults').value = 0;
+                document.getElementById('BMS_warning_count').value = 0;
+            } else if (type === 'failing') {
+                document.getElementById('thermal_health_score').value = 52.2;
+                document.getElementById('thermal_runaway_risk').value = 59.3;
+                document.getElementById('cell_temperature_max').value = 68.6;
+                document.getElementById('cell_temperature_avg').value = 54.2;
+                document.getElementById('capacity_loss_percent').value = 41.6;
+                document.getElementById('internal_resistance').value = 0.877;
+                document.getElementById('battery_health_percent').value = 68.0;
+                document.getElementById('battery_stress_index').value = 78.5;
+                document.getElementById('previous_faults').value = 4;
+                document.getElementById('BMS_warning_count').value = 5;
+            }
+        }
+
+        async function predict(e) {
+            e.preventDefault();
+            const data = {
+                thermal_health_score: parseFloat(document.getElementById('thermal_health_score').value),
+                thermal_runaway_risk: parseFloat(document.getElementById('thermal_runaway_risk').value),
+                cell_temperature_max: parseFloat(document.getElementById('cell_temperature_max').value),
+                cell_temperature_avg: parseFloat(document.getElementById('cell_temperature_avg').value),
+                capacity_loss_percent: parseFloat(document.getElementById('capacity_loss_percent').value),
+                internal_resistance: parseFloat(document.getElementById('internal_resistance').value),
+                battery_health_percent: parseFloat(document.getElementById('battery_health_percent').value),
+                battery_stress_index: parseFloat(document.getElementById('battery_stress_index').value),
+                previous_faults: parseInt(document.getElementById('previous_faults').value),
+                BMS_warning_count: parseInt(document.getElementById('BMS_warning_count').value),
+            };
+
+            const res = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            const prob = result.probability; // e.g. 74.5
+            
+            document.getElementById('probText').innerText = `%${prob.toFixed(1)}`;
+            
+            // Gauge animation
+            const circumference = 471;
+            const offset = circumference - (prob / 100) * circumference;
+            const gaugeCircle = document.getElementById('gaugeCircle');
+            gaugeCircle.style.strokeDashoffset = offset;
+
+            const riskBadge = document.getElementById('riskBadge');
+            const riskDetail = document.getElementById('riskDetail');
+
+            if (prob >= 20.0) {
+                gaugeCircle.style.stroke = '#ff4b4b';
+                riskBadge.className = 'risk-badge high';
+                riskBadge.innerText = '🚨 YÜKSEK ARIZA RİSKİ';
+                riskDetail.innerText = `⚠️ Arıza olasılığı %${prob.toFixed(1)}! Karar eşiği %20'yi aştı. Bakım veya değişim gerekebilir.`;
+            } else {
+                gaugeCircle.style.stroke = '#00e676';
+                riskBadge.className = 'risk-badge low';
+                riskBadge.innerText = '🟢 DÜŞÜK RİSK (SAĞLAM)';
+                riskDetail.innerText = `✅ Batarya parametreleri normal sınırlar içinde (%${prob.toFixed(1)}).`;
+            }
+        }
+    </script>
+</body>
+</html>
